@@ -2518,7 +2518,7 @@ public class TownCommand extends BaseCommand implements CommandExecutor {
 					finalTown.setHomeBlock(finalTB);
 					finalTown.setSpawn(playerLocation);
 					town.setMovedHomeBlockAt(System.currentTimeMillis());
-					finalNation.removeOutOfRangeTowns();
+					finalNation.removeOutOfRangeTowns(removedTowns);
 					TownyMessaging.sendMsg(player, Translatable.of("msg_set_town_home", coord.toString()));
 				}).setTitle(Translatable.of("msg_warn_the_following_towns_will_be_removed_from_your_nation", StringMgmt.join(removedTowns, ", ")))
 				  .sendTo(player);

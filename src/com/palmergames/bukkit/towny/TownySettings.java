@@ -2783,6 +2783,10 @@ public class TownySettings {
 	public static double getNationRequiresProximity() {
 		return getDouble(ConfigNodes.GTOWN_SETTINGS_NATION_REQUIRES_PROXIMITY);
 	}
+
+	public static boolean getNationProximityBasedOnTowns() {
+		return getBoolean(ConfigNodes.GTOWN_SETTINGS_NATION_PROXIMITY_BASED_ON_TOWNS);
+	}
 	
 	/**
 	 * @deprecated since 0.97.5.4
