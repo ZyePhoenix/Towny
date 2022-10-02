@@ -366,11 +366,52 @@ public class Nation extends Government {
 	 * longer close enough to the capital homeblock being removed from 
 	 * the nation.
 	 */
+	public static void recheckNationTownProximities(Nation nation) {
+		List<Town> removedTowns = new ArrayList<>();
+		if (TownySettings.getNationProximityBasedOnTowns()) {
+			// get the list of towns that satisfy nation capital proximity and the list that doesn't satisfy
+			// use the 2 lists and treat as a nation merge to ensure capital is guaranteed to stay
+			List<Town> tempOutOfRangeTowns = new ArrayList<>();
+			List<Town> withinRangeOfCapitalTowns = nation.getTowns();
+			tempOutOfRangeTowns = nation.gatherOutOfRangeTowns(nation.getTowns(), nation.getCapital());
+			withinRangeOfCapitalTowns.removeAll(tempOutOfRangeTowns);
+			removedTowns = nation.gatherOutOfRangeTowns(tempOutOfRangeTowns, withinRangeOfCapitalTowns);
+		} else {
+			removedTowns = nation.gatherOutOfRangeTowns(nation.getTowns(), nation.getCapital());
+		}
+		nation.removeOutOfRangeTowns(removedTowns);
+	}
+
+	/**
+	 * Method for rechecking town distances to a new nation capital/moved 
+	 * nation capital homeblock. Results in towns whose homeblocks are no 
+	 * longer close enough to the capital homeblock being removed from 
+	 * the nation.
+	 */
 	public void removeOutOfRangeTowns() {
 		if(capital != null && TownySettings.getNationRequiresProximity() > 0) {
 			List<Town> toRemove = gatherOutOfRangeTowns(new ArrayList<>(getTowns()), capital);
 			if (!toRemove.isEmpty())
 				toRemove.stream().forEach(town -> {
+					TownyMessaging.sendPrefixedTownMessage(town, Translatable.of("msg_town_left_nation", this.getName()));
+					TownyMessaging.sendPrefixedNationMessage(this, Translatable.of("msg_nation_town_left", town.getName()));
+					town.removeNation();
+					town.save();
+				});
+		}
+	}
+
+	/**
+	 * Results in towns whose homeblocks are no longer close enough
+	 * to another town in the nation being removed from the nation.
+	 *
+	 * @param outOfRangeTowns - The list of towns to remove from the nation.
+	 * @return removedTowns - A list of Towns which would be removed by removeOutOfRangeTowns().
+	 */
+	public void removeOutOfRangeTowns(List<Town> outOfRangeTowns) {
+		if(TownySettings.getNationRequiresProximity() > 0) {
+			if (!outOfRangeTowns.isEmpty())
+				outOfRangeTowns.stream().forEach(town -> {
 					TownyMessaging.sendPrefixedTownMessage(town, Translatable.of("msg_town_left_nation", this.getName()));
 					TownyMessaging.sendPrefixedNationMessage(this, Translatable.of("msg_nation_town_left", town.getName()));
 					town.removeNation();
@@ -396,14 +437,41 @@ public class Nation extends Government {
 				TownBlock townHomeBlock = town.getHomeBlockOrNull();
 				if (town.hasHomeBlock() && capital.getHomeblockWorld().equals(town.getHomeblockWorld()) && townHomeBlock != null) {
 					Coord townCoord = townHomeBlock.getCoord();
-					final double distance = MathUtil.distance(capitalCoord.getX(), townCoord.getX(), capitalCoord.getZ(), townCoord.getZ());
-					if (distance > TownySettings.getNationRequiresProximity())
+					if (MathUtil.distance(capitalCoord, townCoord) > TownySettings.getNationRequiresProximity())
 						removedTowns.add(town);
 				}
 			}
 		}
 		return removedTowns;
-	}	
+	}
+
+	/**
+	 * A method which returns a list of Towns too far from another town in the nation.
+	 *
+	 * @param mergingTowns - The list of towns being merged into the nation.
+	 * @param existingTowns - The list of towns already present in the nation. Towns in this list
+	 *                      are all within range of each other.   
+	 * @return removedTowns - A list of Towns which would be removed by removeOutOfRangeTowns().
+	 */
+	public List<Town> gatherOutOfRangeTowns(List<Town> mergingTowns, List<Town> existingTowns) {
+		List<Town> removedTowns = new ArrayList<>();
+		if (TownySettings.getNationRequiresProximity() > 0) {
+			for (Town checkingTown : mergingTowns) {
+				for (Town existingTown : existingTowns) {
+					TownBlock checkingTownHomeBlock = checkingTown.getHomeBlockOrNull();
+					TownBlock existingTownHomeBlock = existingTown.getHomeBlockOrNull();
+					if (checkingTown.hasHomeBlock() && existingTown.hasHomeBlock()
+						&& existingTown.getHomeblockWorld().equals(checkingTown.getHomeblockWorld())){
+						Coord checkingTownCoord = checkingTownHomeBlock.getCoord();
+						Coord existingTownCoord = existingTownHomeBlock.getCoord();
+						if (MathUtil.distance(existingTownCoord, checkingTownCoord) > TownySettings.getNationRequiresProximity())
+							removedTowns.add(checkingTown);
+					}
+				}
+			}
+		}
+		return removedTowns;
+	}
 
 	public void setKing(Resident king) throws TownyException {
 

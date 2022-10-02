@@ -795,6 +795,14 @@ public enum ConfigNodes {
 			"# Automatically precludes towns from one world joining a nation in another world.",
 			"# If the number is 0, towns will not a proximity to a nation."
 	),
+	GTOWN_SETTINGS_NATION_PROXIMITY_BASED_ON_TOWNS(
+		"global_town_settings.nation_proximity_based_on_towns",
+		"false",
+		"",
+		"# Whether proximity of town homeblock will be compared to nation capital only, or to any town",
+		"# in the nation. If false, all town homeblocks must be within range of capital.",
+		"# If true, town homeblock distance can be within range of any other town within the nation."
+	),
 	GTOWN_FARM_ANIMALS(
 			"global_town_settings.farm_animals",
 			"PIG,COW,CHICKEN,SHEEP,MOOSHROOM",

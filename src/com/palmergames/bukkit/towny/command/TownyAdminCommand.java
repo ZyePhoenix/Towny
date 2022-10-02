@@ -1681,7 +1681,7 @@ public class TownyAdminCommand extends BaseCommand implements CommandExecutor {
 			} else if(split[1].equalsIgnoreCase("recheck")) {
 				
 				checkPermOrThrow(sender, PermissionNodes.TOWNY_COMMAND_TOWNYADMIN_NATION_RECHECK.getNode());
-				nation.removeOutOfRangeTowns();
+				Nation.recheckNationTownProximities(nation);
 				TownyMessaging.sendMsg(sender, Translatable.of("nation_rechecked_by_admin", nation.getName()));
 
 			} else if (split[1].equalsIgnoreCase("rename")) {
